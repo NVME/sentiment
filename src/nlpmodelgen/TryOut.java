@@ -11,26 +11,33 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import edu.stanford.nlp.sentiment.SentimentCoreAnnotations;
 import edu.stanford.nlp.trees.Tree;
 import edu.stanford.nlp.util.CoreMap;
+import java.util.ArrayList;
 import java.util.Properties;
 import org.ejml.simple.SimpleMatrix;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  *
  * @author luya
  */
 public class TryOut {
-     static StanfordCoreNLP pipeline;
+
+    static StanfordCoreNLP pipeline;
 
     public static void init() {
         Properties props = new Properties();
-        props.setProperty("annotators", "tokenize, ssplit, parse,sentiment");       
-        props.put("sentiment.model", "hpnnmodel.ser.gz");       
+        props.setProperty("annotators", "tokenize, ssplit, parse,sentiment");
+        props.put("sentiment.model", "hpnnmodel.ser.gz");
         pipeline = new StanfordCoreNLP(props);
     }
 
     public static void findSentiment(String msg) {
 
-        
+
         int mainSentiment = 0;
         if (msg != null && msg.length() > 0) {
             int longest = 0;
@@ -42,17 +49,34 @@ public class TryOut {
                 int sentimentScore = RNNCoreAnnotations.getPredictedClass(tree);
                 String sentiment = sentence.get(SentimentCoreAnnotations.SentimentClass.class);
                 SimpleMatrix sentimentCoefficients = RNNCoreAnnotations.getPredictions(tree);
+                Map<String, Double> map = new HashMap<String, Double>();
                 double veryNegative = sentimentCoefficients.get(0);
-                System.out.println("veryNegative:"+veryNegative);
+                map.put("veryNegative", veryNegative);
+
                 double negative = sentimentCoefficients.get(1);
-                  System.out.println("negative:"+negative);
+                map.put("negative", negative);
+
                 double neutral = sentimentCoefficients.get(2);
-                   System.out.println("neutral:"+neutral);
+                map.put("neutral", neutral);
+
                 double positive = sentimentCoefficients.get(3);
-                   System.out.println("positive:"+positive);
+                map.put("positive", positive);
+
                 double veryPositive = sentimentCoefficients.get(4);
-                   System.out.println("veryPositive:"+veryPositive);                
+                map.put("veryPositive", veryPositive);
+                String result = "";
+                double score = 0.00;
+                for (Map.Entry<String, Double> entry : map.entrySet()) {
+                    if (entry.getValue() > score) {
+                        score = entry.getValue();
+                        result = entry.getKey();
+                    }
+                    System.out.println(entry.getKey() + ":" + entry.getValue());
+                }
+
+                System.out.println("result-->>>>>>" + result);
+
             }
-        }        
+        }
     }
 }
